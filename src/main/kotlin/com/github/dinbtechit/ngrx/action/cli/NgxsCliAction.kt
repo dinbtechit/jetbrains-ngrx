@@ -1,7 +1,6 @@
 package com.github.dinbtechit.ngrx.action.cli
 
 import com.github.dinbtechit.ngrx.NgrxIcons
-import com.github.dinbtechit.ngrx.action.cli.services.FileService
 import com.github.dinbtechit.ngrx.action.cli.store.Action
 import com.github.dinbtechit.ngrx.action.cli.store.CLIState
 import com.github.dinbtechit.ngrx.action.cli.store.GenerateCLIState
@@ -19,11 +18,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.VirtualFileManager
-import com.intellij.openapi.vfs.newvfs.BulkFileListener
-import com.intellij.openapi.vfs.newvfs.events.VFileCreateEvent
-import com.intellij.openapi.vfs.newvfs.events.VFileEvent
-import org.reduxkotlin.Store
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -46,7 +40,6 @@ class NgxsCliAction : DumbAwareAction(NgrxIcons.logo) {
                         store.state.project!!, store.state,
                         store.state.workingDir, store.state.module!!
                     )
-                    removeNBSPCharacter(project, store)
                 }
             }
         }
@@ -91,29 +84,5 @@ class NgxsCliAction : DumbAwareAction(NgrxIcons.logo) {
             null, JavaScriptBundle.message("generating.0", cli.name),
             arrayOf(), *parameters.toTypedArray(),
         )
-    }
-
-    private fun removeNBSPCharacter(project: Project, store: Store<GenerateCLIState> ) {
-        val connection = project.messageBus.connect()
-        connection.subscribe(VirtualFileManager.VFS_CHANGES, object : BulkFileListener {
-            override fun after(events: MutableList<out VFileEvent>) {
-                val ngxsFileService = project.service<FileService>()
-                for (event in events) {
-                    if (event is VFileCreateEvent) {
-                        if (store.store.state.workingDir != null) {
-                            for (file in store.state.workingDir!!.children) {
-                                if (file.isDirectory && store.state.folderName.isNotBlank()
-                                    && file.name == store.state.folderName) {
-                                    for (storeFiles in file.children) {
-                                        ngxsFileService.replaceNbsp(storeFiles)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                connection.disconnect()
-            }
-        })
     }
 }

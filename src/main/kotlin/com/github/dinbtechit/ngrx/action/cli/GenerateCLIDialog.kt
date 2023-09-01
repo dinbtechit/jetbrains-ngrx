@@ -2,9 +2,6 @@ package com.github.dinbtechit.ngrx.action.cli
 
 import com.github.dinbtechit.ngrx.NgrxBundle
 import com.github.dinbtechit.ngrx.action.cli.store.Action
-import com.github.dinbtechit.ngrx.action.cli.util.CliParameterUtil.convertToCli
-import com.github.dinbtechit.ngrx.action.cli.util.CliParameterUtil.convertToString
-import com.github.dinbtechit.ngrx.action.cli.util.CliParameterUtil.update
 import com.github.dinbtechit.ngrx.action.cli.util.NgxsGeneratorFileUtil
 import com.github.dinbtechit.ngrx.common.ui.TextIconField
 import com.github.dinbtechit.ngrx.action.cli.store.CLIState
@@ -19,14 +16,11 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.TextFieldWithAutoCompletion
-import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.TopGap
 import com.intellij.ui.dsl.builder.panel
 import java.awt.Dimension
 import javax.swing.JComponent
-import javax.swing.event.DocumentEvent
-import javax.swing.event.DocumentListener
 
 
 class GenerateCLIDialog(private val project: Project, e: AnActionEvent) : DialogWrapper(project, true) {
@@ -40,8 +34,6 @@ class GenerateCLIDialog(private val project: Project, e: AnActionEvent) : Dialog
 
     private val ngxsStoreService = project.service<CLIState>()
     private val store = ngxsStoreService.store
-
-    private val nameField = JBTextField()
 
     private val virtualFile: VirtualFile = e.getRequiredData(CommonDataKeys.VIRTUAL_FILE)
     private val directory = when {
@@ -66,42 +58,12 @@ class GenerateCLIDialog(private val project: Project, e: AnActionEvent) : Dialog
             isEnabled = true
             isEditable = false
         }
-        nameField.text = state.name
-        nameField.document.addDocumentListener(object : DocumentListener {
-            private fun update() {
-                ApplicationManager.getApplication().invokeLater {
-                    nameField.text = nameField.text.replace(" ", "-")
-                    val cli = autoCompleteField.text.convertToCli().toMutableMap()
-                    var updateFolderName = false
-                    if (!cli.containsKey("folder-name") || cli["name"] == cli["folder-name"]) {
-                        updateFolderName = true
-                    }
-                    cli.update("name", nameField.text.trim())
-                    if (updateFolderName) cli.update("folder-name", nameField.text.trim())
 
-                    store.dispatch(Action.UpdateParameter(nameField.text, cli.convertToString()))
-                    autoCompleteField.text = cli.convertToString()
-                }
-            }
-
-            override fun insertUpdate(e: DocumentEvent?) {
-                update()
-            }
-
-            override fun removeUpdate(e: DocumentEvent?) {
-                update()
-            }
-
-            override fun changedUpdate(e: DocumentEvent?) {
-                update()
-            }
-
-        })
-        autoCompleteField.document.addDocumentListener(object: com.intellij.openapi.editor.event.DocumentListener {
+        autoCompleteField.document.addDocumentListener(object : com.intellij.openapi.editor.event.DocumentListener {
             override fun documentChanged(event: com.intellij.openapi.editor.event.DocumentEvent) {
                 ApplicationManager.getApplication().invokeLater {
-                    val cli = autoCompleteField.text.convertToCli().toMutableMap()
-                    if(cli.containsKey("name") && cli["name"] != null) nameField.text = cli["name"]
+
+
                 }
             }
         })
@@ -116,14 +78,9 @@ class GenerateCLIDialog(private val project: Project, e: AnActionEvent) : Dialog
                 }
             }
             separator()
-            row {
-                cell(nameField).align(
-                    Align.FILL
-                ).focused()
-            }
             row(NgrxBundle.message("parameters")) {}.topGap(TopGap.SMALL)
             row {
-                cell(autoCompleteField).align(
+                cell(autoCompleteField).focused().align(
                     Align.FILL
                 ).apply {
                     comment("(name --options)")
