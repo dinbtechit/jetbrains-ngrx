@@ -1,18 +1,39 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
-    <id>com.github.dinbtechit.jetbrainsngrx</id>
-    <name>jetbrains-ngrx Template</name>
+    <id>com.github.dinbtechit.ngrx</id>
+    <name>NGRX</name>
     <vendor>dinbtechit</vendor>
 
     <depends>com.intellij.modules.platform</depends>
+    <depends>JavaScript</depends>
 
-    <resource-bundle>messages.MyBundle</resource-bundle>
+    <resource-bundle>messages.NgrxBundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow factoryClass="com.github.dinbtechit.jetbrainsngrx.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
+        <postStartupActivity implementation="com.github.dinbtechit.ngrx.startup.MyStartupNotifyActivity"/>
+        <applicationService
+                serviceImplementation="com.github.dinbtechit.ngrx.settings.SettingsStore"/>
+        <notificationGroup id="NGRX Notification Group" displayType="STICKY_BALLOON"/>
+        <errorHandler implementation="com.github.dinbtechit.ngrx.diagostic.MyErrorReportSubmitter"/>
     </extensions>
+    <actions>
+        <action id="com.github.dinbtechit.ngrx.action.cli.ngrxCliAction"
+                class="com.github.dinbtechit.ngrx.action.cli.NgxsCliAction"
+                text="NGRX CLI/Schematics">
+            <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewDir" />
+        </action>
 
-    <applicationListeners>
-        <listener class="com.github.dinbtechit.jetbrainsngrx.listeners.MyApplicationActivationListener" topic="com.intellij.openapi.application.ApplicationActivationListener"/>
-    </applicationListeners>
+        <action id="com.github.dinbtechit.ngrx.action.notification.WhatsNewAction"
+                class="com.github.dinbtechit.ngrx.action.notification.WhatsNewAction"
+                text="What's New" description="What's new">
+        </action>
+        <action id="com.github.dinbtechit.ngrx.action.notification.DonateAction"
+                class="com.github.dinbtechit.ngrx.action.notification.DonateAction"
+                text="Support">
+        </action>
+        <action id="com.github.dinbtechit.ngrx.action.notification.StarGithubRepoAction"
+                class="com.github.dinbtechit.ngrx.action.notification.StarGithubRepoAction"
+                text="Star Github Repo">
+        </action>
+    </actions>
 </idea-plugin>
