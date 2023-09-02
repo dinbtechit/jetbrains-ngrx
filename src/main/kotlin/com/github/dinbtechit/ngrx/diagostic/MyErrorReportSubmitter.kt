@@ -117,7 +117,7 @@ class MyErrorReportSubmitter: ErrorReportSubmitter() {
 
     private fun getReportIssueUrl(title: String, body: String): URI? {
         val uriBuilder = URIBuilder("https://github.com/dinbtechit/jetbrains-ngrx/issues/new")
-        uriBuilder.addParameter("title", "[Bug] $title")
+        uriBuilder.addParameter("dialog.title", "[Bug] $title")
         uriBuilder.addParameter("labels", "bug")
         if (body.isNotBlank()) {
             uriBuilder.addParameter("body", body)

@@ -11,6 +11,7 @@ plugins {
     alias(libs.plugins.changelog) // Gradle Changelog Plugin
     alias(libs.plugins.qodana) // Gradle Qodana Plugin
     alias(libs.plugins.kover) // Gradle Kover Plugin
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.5.31"
 }
 
 group = properties("pluginGroup").get()
@@ -25,6 +26,7 @@ repositories {
 dependencies {
 //    implementation(libs.annotations)
     implementation("org.reduxkotlin:redux-kotlin-threadsafe:0.6.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
 }
 
 // Set the JVM language level used to build the project. Use Java 11 for 2020.3+, and Java 17 for 2022.2+.

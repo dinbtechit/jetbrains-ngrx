@@ -1,5 +1,6 @@
 package com.github.dinbtechit.ngrx.action.cli
 
+import com.github.dinbtechit.ngrx.NgrxBundle
 import com.github.dinbtechit.ngrx.NgrxIcons
 import com.github.dinbtechit.ngrx.action.cli.store.Action
 import com.github.dinbtechit.ngrx.action.cli.store.CLIState
@@ -22,7 +23,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 
-class NgxsCliAction : DumbAwareAction(NgrxIcons.logo) {
+class NgxsCliAction : DumbAwareAction(NgrxBundle.message("action.name"), "", NgrxIcons.logo) {
 
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
 

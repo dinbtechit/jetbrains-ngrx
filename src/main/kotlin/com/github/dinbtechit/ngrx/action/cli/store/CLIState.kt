@@ -35,6 +35,13 @@ class CLIState(project: Project) {
                     )
                 }
 
+                is Action.LoadTypesAction -> {
+                    thisLogger().info("Action.LoadTypesAction - $action")
+                    state.copy(
+                        types = action.cliTypeOptions
+                    )
+                }
+
                 is Action.UpdateParameter -> {
                     thisLogger().info("Action.UpdateParameter - $action")
                     state.copy(
@@ -50,7 +57,7 @@ class CLIState(project: Project) {
                     if (interpreter != null) {
                         val modules: MutableList<CompletionModuleInfo> = mutableListOf()
                         val cli: VirtualFile = action.project.guessProjectDir()!!
-                        NodeModuleSearchUtil.findModulesWithName(modules, "@ngxs/cli", cli, interpreter)
+                        NodeModuleSearchUtil.findModulesWithName(modules, "@ngrx/schematics", cli, interpreter)
                         val module = modules.firstOrNull()
                         patchState = state.copy(
                             module = module
