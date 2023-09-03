@@ -1,5 +1,6 @@
 package com.github.dinbtechit.ngrx.action.cli
 
+import ai.grazie.utils.capitalize
 import com.github.dinbtechit.ngrx.action.cli.store.CLIState
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.lookup.CharFilter
@@ -9,7 +10,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.ui.TextFieldWithAutoCompletionListProvider
 import com.jetbrains.rd.util.first
 
-class CLIOptionsCompletionProvider(private val project: Project, private val items: List<String>) : TextFieldWithAutoCompletionListProvider<String>(items) {
+class CLIOptionsCompletionProvider(private val project: Project, private val items: List<String>) :
+    TextFieldWithAutoCompletionListProvider<String>(items) {
 
     override fun getLookupString(item: String): String {
         return item
@@ -26,9 +28,16 @@ class CLIOptionsCompletionProvider(private val project: Project, private val ite
     override fun createLookupBuilder(item: String): LookupElementBuilder {
         val state = project.service<CLIState>().store.state
         val schematic = state.selectedSchematicParameters.filter {
-            it.key == item }.first().value
+            it.key == item
+        }.first().value
+        val typeText = if (schematic.default.toString().isBlank() || "${schematic.default}" == "null")
+            "[${schematic.type}]"
+        else "[${schematic.type}][default: ${schematic.default}]"
+        val schematicDescription = if ("${schematic.description}" != "null") "${schematic.description}"
+        else ""
         return super.createLookupBuilder(item)
-                .withTailText("  ${schematic.description}", true)
+            .withTailText("  $schematicDescription", true)
+            .withTypeText(typeText)
     }
 }
 

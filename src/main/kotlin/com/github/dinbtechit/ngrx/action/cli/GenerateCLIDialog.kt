@@ -150,13 +150,15 @@ override fun createCenterPanel(): JComponent {
 }
 
 override fun doValidate(): ValidationInfo? {
-    val parameters = autoCompleteField.text
+    val fileName = autoCompleteField.text.split(" ")[0]
     var invalidFileName = false
-    if (parameters.isNotBlank()) {
+    if (fileName.isNotBlank() && fileName.startsWith("-", ignoreCase = true)) {
         invalidFileName = true
     }
-    return if (parameters.isBlank() || autoCompleteField.text.isBlank()) {
+    return if (fileName.isBlank() || autoCompleteField.text.isBlank()) {
         ValidationInfo(NgrxBundle.message("dialog.parameterBlankErrorMessage"), autoCompleteField)
+    }else if (invalidFileName) {
+        ValidationInfo("$fileName in an invalid filename", autoCompleteField)
     } else null
 }
 
