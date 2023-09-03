@@ -17,17 +17,15 @@ data class SchematicInfo(
 
 
 @Serializable
-data class SchemaJson(
-    val `$schema`: String,
-    val `$id`: String,
+data class SchematicDetails(
     val title: String?,
     val type: String?,
-    val properties: Map<String, Property>? = null,
+    val properties: Map<String, SchematicParameters>? = null,
     val required: List<String>? = null
 )
 
 @Serializable
-data class Property(
+data class SchematicParameters(
     val type: String? = null,
     val description: String? = null
 )

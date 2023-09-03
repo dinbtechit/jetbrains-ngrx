@@ -1,6 +1,7 @@
 package com.github.dinbtechit.ngrx.action.cli.services
 
-import com.github.dinbtechit.ngrx.action.cli.models.SchemaJson
+import com.github.dinbtechit.ngrx.action.cli.models.SchematicParameters
+import com.github.dinbtechit.ngrx.action.cli.models.SchematicDetails
 import com.github.dinbtechit.ngrx.action.cli.models.SchematicInfo
 import com.github.dinbtechit.ngrx.action.cli.models.SchematicsCollection
 import com.github.dinbtechit.ngrx.action.cli.store.CLIState
@@ -8,18 +9,21 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
+import com.jetbrains.rd.util.first
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import java.io.File
 
 @Service(Service.Level.PROJECT)
 class NgrxCliService(val project: Project) {
-    private val state = project.service<CLIState>().store.state
+
 
     private fun getSchematics(): Map<String, SchematicInfo> {
+        val state = project.service<CLIState>().store.state
         val schematicCollectionFile = state.module?.virtualFile?.children?.firstOrNull { it.name == "collection.json" }
-        if(schematicCollectionFile != null) {
+        if (schematicCollectionFile != null) {
             val schematicsCollection = fromJsonFileToSchematics(schematicCollectionFile)
             if (schematicsCollection != null) {
                 return schematicsCollection.schematics
@@ -27,34 +31,6 @@ class NgrxCliService(val project: Project) {
         }
         return mapOf()
     }
-
-    private fun getSchematicsFoldersAndDesc(hasProperties: Boolean = false): Map<VirtualFile, SchemaJson?> {
-        val srcDir = state.module?.virtualFile?.children?.first { it.name == "src" }
-        if (srcDir?.children != null) {
-            val cliFolder = srcDir.children.filter { it.isDirectory }.map { it ->
-                val schemaJsonFile = it.children.firstOrNull { it.name == "schema.json" }
-                var pair: Pair<VirtualFile, SchemaJson?>? = null
-                if (schemaJsonFile != null) {
-                    val schemaJson =  fromJsonFileToSchema(schemaJsonFile)
-                    pair = if (hasProperties) {
-                        if (!schemaJson?.properties.isNullOrEmpty()) {
-                            Pair(it, schemaJson)
-                        } else {
-                            null
-                        }
-                    } else {
-                        Pair(it, schemaJson)
-                    }
-                }
-                pair
-            }.filterNotNull()
-                .toMap()
-
-            return cliFolder
-        }
-        return mapOf() // Or return an empty list
-    }
-
 
     private fun fromJsonFileToSchematics(collectionJsonFile: VirtualFile): SchematicsCollection? {
         val jsonFile = File(collectionJsonFile.path)
@@ -81,7 +57,7 @@ class NgrxCliService(val project: Project) {
      *
      * Expensive method
      */
-    private fun fromJsonFileToSchema(schemaJsonFile: VirtualFile): SchemaJson? {
+    private fun fromJsonFileToSchema(schemaJsonFile: VirtualFile): SchematicDetails? {
         val jsonFile = File(schemaJsonFile.path)
         if (jsonFile.exists()) {
             try {
@@ -91,7 +67,7 @@ class NgrxCliService(val project: Project) {
                         ignoreUnknownKeys = true
 
                     }
-                    return json.decodeFromString<SchemaJson>(content)
+                    return json.decodeFromString<SchematicDetails>(content)
                 }
             } catch (e: Exception) {
                 thisLogger().error("unable to serialize - ${jsonFile.path}", e)
@@ -104,6 +80,38 @@ class NgrxCliService(val project: Project) {
 
 
     fun getTypeOptions(): Map<String, SchematicInfo> {
-        return getSchematics()
+        return getSchematics().filter { it.key != "ng-add" && it.key != "ngrx-push-migration" }
+    }
+
+    fun getSchematicsParameters(schematicType: String): Map<String, SchematicParameters> {
+        val parameters = getSchematicsDetails(schematicType)
+            ?.properties
+            ?.filter { it.key != "name" }
+            ?.map { "--${it.key}" to it.value }
+            ?.toMap()
+
+        if (parameters != null) {
+            return parameters
+        }
+        return mapOf()
+    }
+
+    fun getSchematicsDetails(schematicType: String): SchematicDetails? {
+        try {
+            val state = project.service<CLIState>().store.state
+
+            val schematicInfo = state.types.filter { it.key == schematicType }.first()
+            val schemaFilePath = schematicInfo.value.schema?.replace("./", "")
+            if (!schemaFilePath.isNullOrBlank()) {
+                val schemaFile = LocalFileSystem.getInstance()
+                    .findFileByPath("${state.module?.absolutePath}/$schemaFilePath")
+                if (schemaFile != null) {
+                    return fromJsonFileToSchema(schemaFile)
+                }
+            }
+        } catch (e: Exception) {
+            thisLogger().error("Unable to get getSchematicsParameters for $schematicType", e)
+        }
+        return null
     }
 }

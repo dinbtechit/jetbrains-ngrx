@@ -1,22 +1,15 @@
 package com.github.dinbtechit.ngrx.action.cli
 
+import com.github.dinbtechit.ngrx.action.cli.store.CLIState
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.lookup.CharFilter
 import com.intellij.codeInsight.lookup.LookupElementBuilder
+import com.intellij.openapi.components.service
+import com.intellij.openapi.project.Project
 import com.intellij.ui.TextFieldWithAutoCompletionListProvider
 import com.jetbrains.rd.util.first
 
-class CLIOptionsCompletionProvider(private val items: List<String>) : TextFieldWithAutoCompletionListProvider<String>(items) {
-
-    companion object {
-        val options = mapOf(
-                "--name" to "Store name",
-                "--directory" to " By default, the prompt is set to the current directory",
-                "--folder-name" to " Use your own folder name, default: state.",
-                "--spec" to " Creates a spec file for store, default: true",
-
-        )
-    }
+class CLIOptionsCompletionProvider(private val project: Project, private val items: List<String>) : TextFieldWithAutoCompletionListProvider<String>(items) {
 
     override fun getLookupString(item: String): String {
         return item
@@ -31,10 +24,11 @@ class CLIOptionsCompletionProvider(private val items: List<String>) : TextFieldW
     }
 
     override fun createLookupBuilder(item: String): LookupElementBuilder {
-        val description = options.filter {
+        val state = project.service<CLIState>().store.state
+        val schematic = state.selectedSchematicParameters.filter {
             it.key == item }.first().value
         return super.createLookupBuilder(item)
-                .withTailText("  $description", true)
+                .withTailText("  ${schematic.description}", true)
     }
 }
 

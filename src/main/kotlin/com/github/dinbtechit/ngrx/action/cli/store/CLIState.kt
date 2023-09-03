@@ -34,11 +34,18 @@ class CLIState(project: Project) {
                         project = action.project,
                     )
                 }
-
                 is Action.LoadTypesAction -> {
                     thisLogger().info("Action.LoadTypesAction - $action")
                     state.copy(
-                        types = action.cliTypeOptions
+                        types = action.cliTypeOptions,
+                    )
+                }
+
+                is Action.SelectSchematicType -> {
+                    thisLogger().info("Action.SelectSchematicType - $action")
+                    state.copy(
+                        selectedSchematicType = action.selectedSchematicType,
+                        selectedSchematicParameters = action.selectedSchematicParameters
                     )
                 }
 
