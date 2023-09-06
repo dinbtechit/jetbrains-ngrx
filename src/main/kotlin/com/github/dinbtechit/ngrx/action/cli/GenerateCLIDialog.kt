@@ -63,11 +63,12 @@ class GenerateCLIDialog(private val project: Project, e: AnActionEvent) : Dialog
 
     init {
         title = NgrxBundle.message("dialog.title")
+        schematicTypeComboBox.item = state.selectedSchematicType
         store.dispatch(Action.LoadTypesAction(cliTypeOptions = optionTypes))
         store.dispatch(
             Action.SelectSchematicType(
-                selectedSchematicType = optionTypes.keys.first(),
-                selectedSchematicParameters = ngrxCliService.getSchematicsParameters(optionTypes.keys.first())
+                selectedSchematicType = schematicTypeComboBox.item,
+                selectedSchematicParameters = ngrxCliService.getSchematicsParameters(schematicTypeComboBox.item)
             )
         )
 

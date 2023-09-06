@@ -1,6 +1,9 @@
 package com.github.dinbtechit.ngrx.action.cli.services
 
-import com.github.dinbtechit.ngrx.action.cli.models.*
+import com.github.dinbtechit.ngrx.action.cli.models.SchematicDetails
+import com.github.dinbtechit.ngrx.action.cli.models.SchematicInfo
+import com.github.dinbtechit.ngrx.action.cli.models.SchematicParameters
+import com.github.dinbtechit.ngrx.action.cli.models.SchematicsCollection
 import com.github.dinbtechit.ngrx.action.cli.store.CLIState
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -9,11 +12,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.jetbrains.rd.util.first
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.contextual
 import java.io.File
 
 @Service(Service.Level.PROJECT)
@@ -86,13 +86,17 @@ class NgrxCliService(val project: Project) {
         val parameters = getSchematicsDetails(schematicType)
             ?.properties
             ?.filter { it.key != "name" }
-            ?.map { "--${it.key}" to it.value }
+            ?.map { "--${it.key.toKebabCase()}" to it.value }
             ?.toMap()
 
         if (parameters != null) {
             return parameters
         }
         return mapOf()
+    }
+
+    private fun String.toKebabCase(): String {
+        return this.replace(Regex("([a-z])([A-Z]+)"), "$1-$2").lowercase()
     }
 
     private fun getSchematicsDetails(schematicType: String): SchematicDetails? {

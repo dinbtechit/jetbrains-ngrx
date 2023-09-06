@@ -6,6 +6,7 @@ import com.github.dinbtechit.ngrx.action.cli.store.Action
 import com.github.dinbtechit.ngrx.action.cli.store.CLIState
 import com.github.dinbtechit.ngrx.action.cli.store.GenerateCLIState
 import com.intellij.javascript.nodejs.CompletionModuleInfo
+import com.intellij.javascript.nodejs.NodeModuleSearchUtil
 import com.intellij.javascript.nodejs.interpreter.NodeJsInterpreterManager
 import com.intellij.javascript.nodejs.util.NodePackage
 import com.intellij.lang.javascript.JavaScriptBundle
@@ -69,21 +70,24 @@ class NgxsCliAction : DumbAwareAction(NgrxBundle.message("action.name"), "", Ngr
     ) {
         val interpreter = NodeJsInterpreterManager.getInstance(project).interpreter ?: return
 
-        //val modules: MutableList<CompletionModuleInfo> = mutableListOf()
+        val modules: MutableList<CompletionModuleInfo> = mutableListOf()
         val cli: VirtualFile = project.guessProjectDir()!!
-        // NodeModuleSearchUtil.findModulesWithName(modules, "@ngxs/cli", cli, interpreter)
+        NodeModuleSearchUtil.findModulesWithName(modules, "@angular/cli", cli, interpreter)
+        val ngCliModule = modules.first()
 
         // val module = modules.firstOrNull() ?: return
         val parameters = schematic.parameter.trim().split(" ").toMutableList()
             .map { it.trim() }
             .filter { it != "" }
-        val npm = NodePackage(module.virtualFile?.path!!)
+        val npm = NodePackage(ngCliModule.virtualFile?.path!!)
         NpmPackageProjectGenerator.generate(
             interpreter, npm,
-            { pkg -> pkg.findBinFile("ngxs", null)?.absolutePath },
+            { pkg -> pkg.findBinFile("ng", null)?.absolutePath },
             cli, VfsUtilCore.virtualToIoFile(workingDir ?: cli), project,
             null, JavaScriptBundle.message("generating.0", cli.name),
-            arrayOf(), *parameters.toTypedArray(),
+            arrayOf(), "generate",
+            "@ngrx/schematics:${schematic.selectedSchematicType}",
+            *parameters.toTypedArray(),
         )
     }
 }
